@@ -5,7 +5,7 @@ server = app.listen(3001, function() {
   console.log("server is running on port 3001");
 });
 
-let messages = []; 
+let messages = [];
 let usersIds = {}; // Map between user -> socket id
 let idsUsers = {}; // Map between socket id -> user
 
@@ -15,7 +15,7 @@ const io = require("socket.io")(server);
 
 /**
  * Set or create room data, returns those data
- * @param {string} roomName 
+ * @param {string} roomName
  */
 function setOrCreateRoomData(roomName) {
   if (typeof roomsData[roomName] === 'undefined') {
@@ -35,15 +35,16 @@ function addMessageToRoom(roomName, object) {
 
 /**
  * Creating a message object and returning it
- * @param {string} roomName 
- * @param {string} message 
- * @param {string} socketId 
+ * @param {string} roomName
+ * @param {string} message
+ * @param {string} socketId
  */
-function createMessageObject(roomName, message, socketId) {
+function createMessageObject(roomName, message, documentId, socketId) {
   const messageObject = {
     message,
     createdAt: new Date(),
-    user: idsUsers[socketId]
+    user: idsUsers[socketId],
+    documentId
   }
   return messageObject;
 }
@@ -72,7 +73,7 @@ io.on("connection", function(socket) {
 
   /*
     We create a room with the name of user1|user2, then we add both of them into it.
-    Then messages can be saved with that prefix for history and we can initialize private 
+    Then messages can be saved with that prefix for history and we can initialize private
     chat in the UI with it.
   */
   socket.on("create_room", function (data) {
@@ -89,7 +90,7 @@ io.on("connection", function(socket) {
     for (var client in clients) {
       console.log(client, 'connected to room');
     }
-    
+
     const roomData = setOrCreateRoomData(room);
     // We send to the users of the room a notification that the room is created for them
     io.in(room).emit("ROOM_INIT", room);
@@ -100,9 +101,10 @@ io.on("connection", function(socket) {
   socket.on("send_message_to", function (data) {
     const {
       room,
-      message
+      message,
+      documentId
     } = data;
-    const messageObject = createMessageObject(room, message, socket.id);
+    const messageObject = createMessageObject(room, message, documentId, socket.id);
     addMessageToRoom(room, messageObject);
     io.in(room).emit("NEW_ROOM_MESSAGE", messageObject);
   });

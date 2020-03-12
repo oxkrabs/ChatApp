@@ -9,7 +9,45 @@ let messages = [];
 let usersIds = {}; // Map between user -> socket id
 let idsUsers = {}; // Map between socket id -> user
 
+let roomsData = {};
+
 const io = require("socket.io")(server);
+
+/**
+ * Set or create room data, returns those data
+ * @param {string} roomName 
+ */
+function setOrCreateRoomData(roomName) {
+  if (typeof roomsData[roomName] === 'undefined') {
+    roomsData[roomName] = [];
+  }
+  return roomsData[roomName];
+}
+
+function addMessageToRoom(roomName, object) {
+  console.log("Adding ", object);
+  console.log("To ", roomName);
+  setOrCreateRoomData(roomName);
+  roomsData[roomName].push(object);
+  console.log("Room data");
+  console.log(roomsData[roomName]);
+}
+
+/**
+ * Creating a message object and returning it
+ * @param {string} roomName 
+ * @param {string} message 
+ * @param {string} socketId 
+ */
+function createMessageObject(roomName, message, socketId) {
+  const messageObject = {
+    message,
+    createdAt: new Date(),
+    user: idsUsers[socketId]
+  }
+  return messageObject;
+}
+
 
 io.on("connection", function(socket) {
   socket.on("connected", (userId) => {
@@ -49,25 +87,24 @@ io.on("connection", function(socket) {
     io.sockets.connected[usersIds[user1]].join(room);
     const clients = io.sockets.adapter.rooms[room].sockets;
     for (var client in clients) {
-      
       console.log(client, 'connected to room');
-      //io.to(`${client}`).emit("ROOM_INIT", "room is created for you 2");
     }
-
-    io.in(room).emit("ROOM_INIT", "room is created for you 2");
+    
+    const roomData = setOrCreateRoomData(room);
+    // We send to the users of the room a notification that the room is created for them
+    io.in(room).emit("ROOM_INIT", room);
+    io.in(room).emit("ROOM_INIT_DATA", { data: roomData });
   });
 
   // Doesnt work.
   socket.on("send_message_to", function (data) {
     const {
-      user1,
-      user2,
+      room,
       message
     } = data;
-    const user1socketId = usersIds[user1];
-    const user2socketId = usersIds[user2];
-    console.log(`${user1socketId} -> ${user2socketId} -> ${message}`);
-    //io.to()
+    const messageObject = createMessageObject(room, message, socket.id);
+    addMessageToRoom(room, messageObject);
+    io.in(room).emit("NEW_ROOM_MESSAGE", messageObject);
   });
 
   // Useless

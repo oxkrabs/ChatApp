@@ -101,8 +101,8 @@ redisClient.on("connect", function() {
       if (err) {
         console.log("- findUserRooms - ERROR");
       } else {
-        if (typeof results === "undefined") {
-          cb(x);
+        if (typeof results === "undefined" || results === null) {
+          cb([]);
           return;
         }
         const x = Object.keys(results).reduce((v, n) => {
@@ -143,8 +143,8 @@ redisClient.on("connect", function() {
     // We need this to go off so we can update the ui
     socket.on("disconnect", function() {
       console.log("User ", idsUsers[socket.id], " disconnected!");
-      redisClient.hdel(USER_IDS_SOCKET_IDS, idsUsers[socket.id]);
-      redisClient.hdel(SOCKET_IDS_USER_IDS, socket.id);
+      // redisClient.hdel(USER_IDS_SOCKET_IDS, idsUsers[socket.id]);
+      // redisClient.hdel(SOCKET_IDS_USER_IDS, socket.id);
       delete usersIds[idsUsers[socket.id]];
       delete idsUsers[socket.id];
       io.emit("CONNECTED", usersIds);

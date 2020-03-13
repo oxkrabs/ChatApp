@@ -103,6 +103,7 @@ redisClient.on("connect", function() {
       } else {
         if (typeof results === "undefined") {
           cb(x);
+          return;
         }
         const x = Object.keys(results).reduce((v, n) => {
           let temp = [...v];

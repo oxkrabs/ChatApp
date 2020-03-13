@@ -191,7 +191,10 @@ redisClient.on("connect", function() {
       const { room, message, documentId } = data;
       const messageObject = createMessageObject(message, socket.id, documentId);
       addMessageToRoom(room, messageObject);
-      io.in(room).emit("NEW_ROOM_MESSAGE", messageObject);
+      io.in(room).emit("NEW_ROOM_MESSAGE", {
+        messageObject,
+        room
+      });
     });
 
     // Useless

@@ -108,7 +108,10 @@ redisClient.on("connect", function() {
         const x = Object.keys(results).reduce((v, n) => {
           let temp = [...v];
           if (n.includes(user)) {
-            temp = [...temp, n];
+            const objectToSend = {
+              [n]: JSON.parse(results[n])
+            };
+            temp = [...temp, objectToSend];
           }
           return temp;
         }, []);
@@ -179,7 +182,7 @@ redisClient.on("connect", function() {
 
       const roomData = setOrCreateRoomData(room);
       // We send to the users of the room a notification that the room is created for them
-      io.in(room).emit("ROOM_INIT", room);
+      io.in(room).emit("ROOM_INIT", room); // Combine both
       io.in(room).emit("ROOM_INIT_DATA", { data: roomData });
     });
 
@@ -195,7 +198,6 @@ redisClient.on("connect", function() {
     socket.on("subscribe", function(room) {
       console.log(socket.id, " joining room", room);
       socket.join(room);
-      //socket.broadcast.to(socket.id).emit("MESSAGE", messages);
     });
   });
 });

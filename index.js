@@ -51,6 +51,10 @@ function createMessageObject(roomName, message, socketId) {
 
 io.on("connection", function(socket) {
   socket.on("connected", (userId) => {
+
+    // need to check the history and see what rooms this guy belong to
+    // and push him in again.
+
     console.log(`connected - ${userId} - ${socket.id}`);
     usersIds[userId] = socket.id;
     idsUsers[socket.id] = userId;
@@ -83,8 +87,10 @@ io.on("connection", function(socket) {
     } = data;
     const room = `${user1}|${user2}`;
     console.log("creating room ", room);
+    // Check if user is online first
     io.sockets.connected[usersIds[user2]].join(room);
     io.sockets.connected[usersIds[user1]].join(room);
+    // ----
     const clients = io.sockets.adapter.rooms[room].sockets;
     for (var client in clients) {
       console.log(client, 'connected to room');

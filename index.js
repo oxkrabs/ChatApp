@@ -9,7 +9,27 @@ let messages = [];
 let usersIds = {}; // Map between user -> socket id
 let idsUsers = {}; // Map between socket id -> user
 
-let roomsData = {};
+let roomsData = {
+  "user1|user2": [],
+  "user2|user1": [],
+  "user3|user2": [],
+  "user4|user2": [],
+  "user5|user2": [],
+  "user6|user2": [],
+  "user7|user2": [],
+  "user8|user2": [],
+  "user9|user2": [],
+  "user10|user2": [],
+  "user11|user2": [],
+  "user12|user2": [],
+  "user13|user2": [],
+  "user14|user2": [],
+  "user15|user2": [],
+  "user16|user2": [],
+  "user17|user2": [],
+  "user18|user2": [],
+  "user19|user2": []
+};
 
 const io = require("socket.io")(server);
 
@@ -38,8 +58,9 @@ function addMessageToRoom(roomName, object) {
  * @param {string} roomName
  * @param {string} message
  * @param {string} socketId
+ * @param {string} documentId
  */
-function createMessageObject(roomName, message, documentId, socketId) {
+function createMessageObject(roomName, message, socketId, documentId = "") {
   const messageObject = {
     message,
     createdAt: new Date(),
@@ -49,16 +70,35 @@ function createMessageObject(roomName, message, documentId, socketId) {
   return messageObject;
 }
 
+/**
+ * Find the rooms that the user is in, and then return them
+ * @param {string} user 
+ */
+function findUserRooms(user) {
+  const x = Object.keys(roomsData).reduce((v, n) => {
+    let temp = [...v];
+    if (n.includes(user)) {
+      temp = [...temp, n];
+    }
+    return temp;
+   }, []);
+  return x;
+}
 
 io.on("connection", function(socket) {
   socket.on("connected", (userId) => {
-
-    // need to check the history and see what rooms this guy belong to
-    // and push him in again.
-
     console.log(`connected - ${userId} - ${socket.id}`);
     usersIds[userId] = socket.id;
     idsUsers[socket.id] = userId;
+
+    // need to check the history and see what rooms this guy belong to
+    // and push him in again.
+    const rooms = findUserRooms(userId);
+    rooms.forEach(room => {
+      io.sockets.connected[usersIds[userId]].join(room);
+      console.log("Added ", userId, " into room ", room);
+    });
+
     io.emit("CONNECTED", usersIds);
   });
 
@@ -89,8 +129,16 @@ io.on("connection", function(socket) {
     const room = `${user1}|${user2}`;
     console.log("creating room ", room);
     // Check if user is online first
-    io.sockets.connected[usersIds[user2]].join(room);
-    io.sockets.connected[usersIds[user1]].join(room);
+    if (usersIds[user2]) {
+      io.sockets.connected[usersIds[user2]].join(room);
+    } else {
+      console.log(user2, ' is not online');
+    }
+    if (usersIds[user1]) {
+      io.sockets.connected[usersIds[user1]].join(room);
+    } else {
+      console.log(user1, ' is not online');
+    }
     // ----
     const clients = io.sockets.adapter.rooms[room].sockets;
     for (var client in clients) {

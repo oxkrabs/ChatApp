@@ -101,6 +101,9 @@ redisClient.on("connect", function() {
       if (err) {
         console.log("- findUserRooms - ERROR");
       } else {
+        if (typeof results === "undefined") {
+          cb(x);
+        }
         const x = Object.keys(results).reduce((v, n) => {
           let temp = [...v];
           if (n.includes(user)) {

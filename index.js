@@ -9,27 +9,7 @@ let messages = [];
 let usersIds = {}; // Map between user -> socket id
 let idsUsers = {}; // Map between socket id -> user
 
-let roomsData = {
-  "user1|user2": [],
-  "user2|user1": [],
-  "user3|user2": [],
-  "user4|user2": [],
-  "user5|user2": [],
-  "user6|user2": [],
-  "user7|user2": [],
-  "user8|user2": [],
-  "user9|user2": [],
-  "user10|user2": [],
-  "user11|user2": [],
-  "user12|user2": [],
-  "user13|user2": [],
-  "user14|user2": [],
-  "user15|user2": [],
-  "user16|user2": [],
-  "user17|user2": [],
-  "user18|user2": [],
-  "user19|user2": []
-};
+let roomsData = {};
 
 const io = require("socket.io")(server);
 
@@ -55,12 +35,11 @@ function addMessageToRoom(roomName, object) {
 
 /**
  * Creating a message object and returning it
- * @param {string} roomName
  * @param {string} message
  * @param {string} socketId
  * @param {string} documentId
  */
-function createMessageObject(roomName, message, socketId, documentId = "") {
+function createMessageObject(message, socketId, documentId = "") {
   const messageObject = {
     message,
     createdAt: new Date(),
@@ -158,7 +137,7 @@ io.on("connection", function(socket) {
       message,
       documentId
     } = data;
-    const messageObject = createMessageObject(room, message, documentId, socket.id);
+    const messageObject = createMessageObject(message, socket.id, documentId);
     addMessageToRoom(room, messageObject);
     io.in(room).emit("NEW_ROOM_MESSAGE", messageObject);
   });

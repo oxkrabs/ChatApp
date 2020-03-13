@@ -111,7 +111,8 @@ redisClient.on("connect", function() {
             const objectToSend = {
               [n]: {
                 messages: JSON.parse(results[n]),
-                subject: "test subject"
+                subject: "test subject",
+                roomId: n
               }
             };
             temp = [...temp, objectToSend];

@@ -56,7 +56,7 @@ redisClient.on("connect", function() {
     });
   }
 
-  function addMessageToRoom(roomName, object) {
+  function addMessageToRoom(roomName, object, cb) {
     console.log("Adding ", object);
     console.log("To ", roomName);
     setOrCreateRoomData(roomName, () => {
@@ -68,7 +68,8 @@ redisClient.on("connect", function() {
             redisClient.hset(
               "roomData",
               roomName,
-              JSON.stringify([...existingMessages, object])
+              JSON.stringify([...existingMessages, object]),
+              cb
             );
           }
         }
@@ -136,8 +137,8 @@ redisClient.on("connect", function() {
       // and push him in again.
       findUserRooms(userId, rooms => {
         rooms.forEach(room => {
-          io.sockets.connected[usersIds[userId]].join(room);
-          console.log("Added ", userId, " into room ", room);
+          io.sockets.connected[usersIds[userId]].join(room.roomId);
+          console.log("Added ", userId, " into room ", room.roomId);
         });
         io.emit("USER_ROOMS", rooms);
       });
@@ -188,21 +189,22 @@ redisClient.on("connect", function() {
       io.in(room).emit("ROOM_INIT_DATA", { data: roomData });
     });
 
-    // Doesnt work.
     socket.on("send_message_to", function(data) {
+      console.log("send_message_to: called");
       const { room, message, documentId } = data;
       const messageObject = createMessageObject(message, socket.id, documentId);
-      addMessageToRoom(room, messageObject);
-      io.in(room).emit("NEW_ROOM_MESSAGE", {
-        messageObject,
-        room
+      addMessageToRoom(room, messageObject, () => {
+        console.log("I THINK WE NEED TO DO SHIT HERE");
+        console.log(room);
+        // const clients = io.sockets.adapter.rooms[room].sockets;
+        // for (var client in clients) {
+        //   console.log(client, "is in the room");
+        // }
+        io.in(room).emit("NEW_ROOM_MESSAGE", {
+          messageObject,
+          room
+        });
       });
-    });
-
-    // Useless
-    socket.on("subscribe", function(room) {
-      console.log(socket.id, " joining room", room);
-      socket.join(room);
     });
   });
 });

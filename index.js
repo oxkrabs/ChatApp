@@ -12,7 +12,7 @@ const redisClient = redis.createClient({
 
 redisClient.on("connect", function() {
   console.log("REDIS CONNECTED");
-  server = app.listen(3001, function() {
+  server = app.listen(3001, '0.0.0.0', function() {
     console.log("server is running on port 3001");
   });
 

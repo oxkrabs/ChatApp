@@ -140,7 +140,7 @@ redisClient.on("connect", function() {
           io.sockets.connected[usersIds[userId]].join(room.roomId);
           console.log("Added ", userId, " into room ", room.roomId);
         });
-        io.emit("USER_ROOMS", rooms);
+        io.to(socket.id).emit("USER_ROOMS", rooms);
       });
 
       io.emit("CONNECTED", usersIds);

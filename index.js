@@ -12,7 +12,7 @@ const redisClient = redis.createClient({
 
 redisClient.on("connect", function() {
   console.log("REDIS CONNECTED");
-  server = app.listen(3001, '0.0.0.0', function() {
+  server = app.listen(3001, "0.0.0.0", function() {
     console.log("server is running on port 3001");
   });
 
@@ -159,7 +159,7 @@ redisClient.on("connect", function() {
       // redisClient.hdel(SOCKET_IDS_USER_IDS, socket.id);
       delete usersIds[idsUsers[socket.id]];
       delete idsUsers[socket.id];
-      console.log("EMMITING CONNECTED");
+      console.log("EMMITING CONNECTED from disconnect");
       io.emit("CONNECTED", usersIds);
     });
 

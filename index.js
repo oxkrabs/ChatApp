@@ -98,14 +98,17 @@ redisClient.on("connect", function() {
    * @param {string} user
    */
   function findUserRooms(user, cb) {
+    console.log("- findUserRooms- trying to find user rooms");
     redisClient.hgetall("roomData", function(err, results) {
       if (err) {
         console.log("- findUserRooms - ERROR");
       } else {
+        console.log("- findUserRooms- connected to redis with no error");
         if (typeof results === "undefined" || results === null) {
           cb([]);
           return;
         }
+        console.log("- findUserRooms- found some rooms");
         const x = Object.keys(results).reduce((v, n) => {
           let temp = [...v];
           if (n.includes(user)) {
@@ -118,8 +121,6 @@ redisClient.on("connect", function() {
           }
           return temp;
         }, []);
-        console.log("- findUserRooms -");
-        console.log(x);
         cb(x);
       }
     });
@@ -136,13 +137,18 @@ redisClient.on("connect", function() {
       // need to check the history and see what rooms this guy belong to
       // and push him in again.
       findUserRooms(userId, rooms => {
+        console.log("- connected - got the rooms back");
+        console.log(rooms);
         rooms.forEach(room => {
+          // Need to either make the user join his rooms or recreated the rooms
           io.sockets.connected[usersIds[userId]].join(room.roomId);
           console.log("Added ", userId, " into room ", room.roomId);
         });
+        // We send back to the user the rooms he is in
+        console.log("EMMITING USER_ROOMS");
         io.to(socket.id).emit("USER_ROOMS", rooms);
       });
-
+      console.log("EMMITING CONNECTED");
       io.emit("CONNECTED", usersIds);
     });
 
@@ -153,6 +159,7 @@ redisClient.on("connect", function() {
       // redisClient.hdel(SOCKET_IDS_USER_IDS, socket.id);
       delete usersIds[idsUsers[socket.id]];
       delete idsUsers[socket.id];
+      console.log("EMMITING CONNECTED");
       io.emit("CONNECTED", usersIds);
     });
 
@@ -185,7 +192,9 @@ redisClient.on("connect", function() {
 
       const roomData = setOrCreateRoomData(room);
       // We send to the users of the room a notification that the room is created for them
-      io.in(room).emit("ROOM_INIT", room); // Combine both
+      console.log("EMMITING ROOM_INIT");
+      io.in(room).emit("ROOM_INIT", room); // Combine both\
+      console.log("EMMITING ROOM_INIT_DATA");
       io.in(room).emit("ROOM_INIT_DATA", { data: roomData });
     });
 
@@ -200,6 +209,7 @@ redisClient.on("connect", function() {
         // for (var client in clients) {
         //   console.log(client, "is in the room");
         // }
+        console.log("EMMITING NEW_ROOM_MESSAGE");
         io.in(room).emit("NEW_ROOM_MESSAGE", {
           messageObject,
           room
